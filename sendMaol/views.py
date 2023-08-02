@@ -106,3 +106,41 @@ class aws_ses(APIView):
         except Exception as e:
             print(e)
             return Response({"status":400, "message":"Email send unsuccesfully"},status=status.HTTP_400_BAD_REQUEST)
+
+
+class track_image(APIView):
+    def get(self, request):
+        from django.core.mail import send_mail
+        from django.conf import settings
+        from django.template.loader import render_to_string,get_template
+        import time
+        try:
+            import boto3
+
+            # Set up your AWS credentials and region
+            aws_access_key_id = 'YOUR_ACCESS_KEY_ID'
+            aws_secret_access_key = 'YOUR_SECRET_ACCESS_KEY'
+            region_name = 'us-west-2'  # Replace with your desired AWS region
+
+            # Create an S3 client
+            s3_client = boto3.client('s3', region_name=region_name,
+                                    aws_access_key_id=aws_access_key_id,
+                                    aws_secret_access_key=aws_secret_access_key)
+
+            # Upload the tracking pixel (1x1 transparent image) to your S3 bucket
+            bucket_name = 'your-s3-bucket-name'
+            object_key = 'tracking_pixel.png'
+            image_data = b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x02\x00\x00\x00\x90\x8d\x8f&\x00\x00\x00\rIDATx\x9cc`\x00\x00\x00\x04\x00\x01\xe3?\xa1\xbc\x00\x00\x00\x00IEND\xaeB`\x82'
+            s3_client.put_object(Bucket=bucket_name, Key=object_key, Body=image_data)
+
+            # Print the URL of the hosted tracking pixel
+            tracking_pixel_url = f"https://{bucket_name}.s3.{region_name}.amazonaws.com/{object_key}"
+            print("Tracking pixel URL:", tracking_pixel_url)
+
+            
+            return Response({"status":200, "message":"Email send succesfully"},status=status.HTTP_200_OK)
+
+        except Exception as e:
+            print(e)
+            return Response({"status":400, "message":"Email send unsuccesfully"},status=status.HTTP_400_BAD_REQUEST)
+
