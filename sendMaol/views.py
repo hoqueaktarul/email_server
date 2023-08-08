@@ -42,8 +42,8 @@ class aws_ses(APIView):
             
             def send_email_with_template(template_name, recipient_email, sender_email, template_data):
                 session = boto3.Session(
-                aws_access_key_id='AKIAJ3U7NNEUATYWGCWQ',
-                aws_secret_access_key='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',
+                aws_access_key_id='AKIAXBPY5MDZIBHNXH6L',
+                aws_secret_access_key='knoTzCMoDL8c9xzTGmqiauwpVxTtWerWOuZC4vCn',
                 region_name='ap-south-1'  # Change to your desired region
                  )
                 ses = session.client('ses', region_name='ap-south-1')  # Change the region as needed
@@ -54,18 +54,23 @@ class aws_ses(APIView):
                 print(recipient_email,"recipient_email")
                 print(sender_email,"sender_email")
                 print(template_data,"template_data")
-                response = ses.send_templated_email(
-                    Source=sender_email,
-                    Destination={
-                        'ToAddresses': [recipient_email],
-                    },
-                    Template=template_name,
-                    TemplateData=template_data
-                )
+                subject = 'Test Email'
+                body = 'This is the body of the email.'
+                # response = ses.send_email(
+                #     Source=sender_email,
+                #     Destination={'ToAddresses': [recipient_email]},
+                #     Message={
+                #         'Subject': {'Data': subject},
+                #         'Body': {'Text': {'Data': body}}
+                #     }
+                # )
+                # print(response)
+                # print("Email sent:", response['MessageId'])
 
-                # Get the email delivery status
-                message_id = response['MessageId']
-                delivery_status = get_email_delivery_status(ses, message_id)
+
+                # # Get the email delivery status
+                # message_id = response['MessageId']
+                delivery_status = get_email_delivery_status(ses, "01090189d6beb5f0-59d1c873-2b11-4e5d-bd41-f353540b402e-000000")
                 return delivery_status
 
             def get_email_delivery_status(ses, message_id):
@@ -84,22 +89,23 @@ class aws_ses(APIView):
             print("Email delivery status:", delivery_status)
             # def check_aws_credentials():
             #     session = boto3.Session(
-            #     aws_access_key_id='AKIAJ3U7NNEUATYWGCWQ',
-            #     aws_secret_access_key='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',
+            #     aws_access_key_id='AKIAXBPY5MDZIBHNXH6L',
+            #     aws_secret_access_key='knoTzCMoDL8c9xzTGmqiauwpVxTtWerWOuZC4vCn',
             #     region_name='ap-south-1'  # Change to your desired region
             #      )
             #     try:
             #         ses = session.client('ses', region_name='ap-south-1')  # Change the region as needed
             #         response = ses.list_identities()
+            #         print(response,"res--------------------")
             #         return True
             #     except Exception as e:
             #         print("Error:", e)
             #         return False
 
-            # if check_aws_credentials():
-            #     print("AWS credentials found and valid.")
-            # else:
-            #     print("AWS credentials not found or invalid.")
+            if check_aws_credentials():
+                print("AWS credentials found and valid.")
+            else:
+                print("AWS credentials not found or invalid.")
                 
             return Response({"status":200, "message":"Email send succesfully"},status=status.HTTP_200_OK)
 
@@ -116,21 +122,25 @@ class track_image(APIView):
         import time
         try:
             import boto3
+            image_data=""
+            # with open('C:\Users\satta\OneDrive\Desktop\office\mypustak\newEmailServer\email_server\imge\dumy+book.png') as image_file:
+            #     image_data = image_file.read()
 
             # Set up your AWS credentials and region
             aws_access_key_id = 'YOUR_ACCESS_KEY_ID'
             aws_secret_access_key = 'YOUR_SECRET_ACCESS_KEY'
-            region_name = 'us-west-2'  # Replace with your desired AWS region
+            region_name = 'ap-south-1'  # Replace with your desired AWS region
 
             # Create an S3 client
             s3_client = boto3.client('s3', region_name=region_name,
-                                    aws_access_key_id=aws_access_key_id,
-                                    aws_secret_access_key=aws_secret_access_key)
+                                    aws_access_key_id="AKIAJ3U7NNEUATYWGCWQ",
+                                    aws_secret_access_key="wdh+F7u1Jz5r908G5JcYsO2uYHlIcJQ2DkmsuI7t")
 
             # Upload the tracking pixel (1x1 transparent image) to your S3 bucket
-            bucket_name = 'your-s3-bucket-name'
-            object_key = 'tracking_pixel.png'
-            image_data = b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x02\x00\x00\x00\x90\x8d\x8f&\x00\x00\x00\rIDATx\x9cc`\x00\x00\x00\x04\x00\x01\xe3?\xa1\xbc\x00\x00\x00\x00IEND\xaeB`\x82'
+            bucket_name = 'https://mypustak-6.s3.amazonaws.com'
+            object_key = 'dumy+book.png'
+            print(image_data,"image_data++++++++++++++++++++++++")
+            # image_data/ = b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x02\x00\x00\x00\x90\x8d\x8f&\x00\x00\x00\rIDATx\x9cc`\x00\x00\x00\x04\x00\x01\xe3?\xa1\xbc\x00\x00\x00\x00IEND\xaeB`\x82'
             s3_client.put_object(Bucket=bucket_name, Key=object_key, Body=image_data)
 
             # Print the URL of the hosted tracking pixel
