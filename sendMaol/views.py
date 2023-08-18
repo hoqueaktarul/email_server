@@ -98,6 +98,10 @@ class handle_delivery_notification(APIView):
             print(e)
             return Response({"status":400, "message":"Email send unsuccesfully"},status=status.HTTP_400_BAD_REQUEST)
 
+class admin(APIView):
+    def get(self,request):
+            return Response({"status":200, "message":"this is admin"},status=status.HTTP_200_OK)
+
 
 
 class aws_ses(APIView):

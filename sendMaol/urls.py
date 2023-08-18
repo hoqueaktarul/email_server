@@ -2,6 +2,7 @@ from django.urls import path
 from . import views
 urlpatterns = [
     #fetch wishlist
+    path("", views.admin.as_view(), name="sendSesMail"),
     path("/sendSesMail", views.sendSesMail.as_view(), name="sendSesMail"),
     path("/aws_ses", views.aws_ses.as_view(), name="aws_ses"),
     path("/track_image", views.track_image.as_view(), name="track_image"),
