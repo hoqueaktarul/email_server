@@ -9,26 +9,95 @@ from rest_framework.views import APIView
 from django.core.mail import send_mail
 from rest_framework.response import Response
 from rest_framework import status
+import boto3
+import json
 
-class sendMail(APIView):
+class sendSesMail(APIView):
     def get(self, request):
         from django.core.mail import send_mail
         from django.conf import settings
         from django.template.loader import render_to_string,get_template
         import time
         try:
-            message = 'TEST EMAIL'
-            email_from = settings.EMAIL_HOST_USER
-            recipient_list = ["hoqueaktarul07@gmail.com"]
-            # msg_html = render_to_string('test.html',{}) #### passing data1 and data2 to the html file common_email.html
-            msg_html = get_template('test.html').render({}) #### passing data1 and data2 to the html file common_email.html
-            
-            send_mail('mail for test',message,email_from,recipient_list,html_message=msg_html,fail_silently=False,) ### command to send thhe email
+            subject = 'Hello from Django and AWS SES'
+            message = 'This is the content of the email.'
+            from_email = 'support@mypustak.com'
+            recipient_list = ['hoqueaktarul07@gmail.com']
+
+            ses_client = boto3.client('ses',
+                             aws_access_key_id='AKIAXBPY5MDZIBHNXH6L',
+                             aws_secret_access_key='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',
+                             region_name='ap-south-1')
+            response = ses_client.send_email(
+                Source=from_email,
+                Destination={
+                    'ToAddresses': recipient_list,
+                },
+                Message={
+                    'Subject': {'Data': subject},
+                    'Body': {'Text': {'Data': message}},
+                }
+            )
+            print("Email sent successfully. Response:", response)
+
+
+
             return Response({"status":200, "message":"Email send succesfully"},status=status.HTTP_200_OK)
 
         except Exception as e:
             print(e)
             return Response({"status":400, "message":"Email send unsuccesfully"},status=status.HTTP_400_BAD_REQUEST)
+
+class handle_delivery_notification(APIView):
+    def get(self, request):
+        from django.core.mail import send_mail
+        from django.conf import settings
+        from django.template.loader import render_to_string,get_template
+        import time
+        try:
+            with open("sendMaol/readme.md", 'a') as readme_file:
+                readme_file.write(f"get method is not valid\n")
+ 
+            return Response({"status":400, "message":"method not valid"},status=status.HTTP_400_BAD_REQUEST)
+
+
+        except Exception as e:
+            print(e)
+            return Response({"status":400, "message":"Email send unsuccesfully"},status=status.HTTP_400_BAD_REQUEST)
+
+    def post(self, request):
+        from django.core.mail import send_mail
+        from django.conf import settings
+        from django.template.loader import render_to_string,get_template
+        import time
+        try:
+            if request.method == 'POST':
+                notification_data = json.loads(request.body)
+                print(notification_data)
+                
+                # Extract delivery information from the notification
+                mail_message_id = notification_data['mail']['messageId']
+                delivery_timestamp = notification_data['delivery']['timestamp']
+                delivery_recipients = notification_data['delivery']['recipients']
+                
+                # You can perform actions based on the delivery notification here
+                # For example, log the delivery status or update your database
+                with open("sendMaol/readme.md", 'a') as readme_file:
+                    readme_file.write(f"mail_message_id : {mail_message_id} , delivery_timestamp : {delivery_timestamp} , delivery_recipients: {delivery_recipients} \n")
+                
+                print(f"Delivery Notification for Message ID: {mail_message_id}")
+                print(f"Delivery Timestamp: {delivery_timestamp}")
+                print(f"Delivery Recipients: {delivery_recipients}")
+
+                return Response({"status":200, "message":"success"},status=status.HTTP_200_OK)
+            else:
+                return Response({"status":400, "message":"method not valid"},status=status.HTTP_400_BAD_REQUEST)
+
+
+        except Exception as e:
+            print(e)
+            return Response({"status":400, "message":"Email send unsuccesfully"},status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class aws_ses(APIView):
@@ -56,22 +125,22 @@ class aws_ses(APIView):
                 print(template_data,"template_data")
                 subject = 'Test Email'
                 body = 'This is the body of the email.'
-                # response = ses.send_email(
-                #     Source=sender_email,
-                #     Destination={'ToAddresses': [recipient_email]},
-                #     Message={
-                #         'Subject': {'Data': subject},
-                #         'Body': {'Text': {'Data': body}}
-                #     }
-                # )
-                # print(response)
-                # print("Email sent:", response['MessageId'])
+                response = ses.send_email(
+                    Source=sender_email,
+                    Destination={'ToAddresses': [recipient_email]},
+                    Message={
+                        'Subject': {'Data': subject},
+                        'Body': {'Text': {'Data': body}}
+                    }
+                )
+                print(response)
+                print("Email sent:", response['MessageId'])
 
 
                 # # Get the email delivery status
-                # message_id = response['MessageId']
-                delivery_status = get_email_delivery_status(ses, "01090189d6beb5f0-59d1c873-2b11-4e5d-bd41-f353540b402e-000000")
-                return delivery_status
+                message_id = response['MessageId']
+                # delivery_status = get_email_delivery_status(ses, "01090189d6beb5f0-59d1c873-2b11-4e5d-bd41-f353540b402e-000000")
+                # return delivery_status
 
             def get_email_delivery_status(ses, message_id):
                 print("delivery status")
@@ -102,10 +171,10 @@ class aws_ses(APIView):
             #         print("Error:", e)
             #         return False
 
-            if check_aws_credentials():
-                print("AWS credentials found and valid.")
-            else:
-                print("AWS credentials not found or invalid.")
+            # if check_aws_credentials():
+            #     print("AWS credentials found and valid.")
+            # else:
+            #     print("AWS credentials not found or invalid.")
                 
             return Response({"status":200, "message":"Email send succesfully"},status=status.HTTP_200_OK)
 
@@ -153,4 +222,52 @@ class track_image(APIView):
         except Exception as e:
             print(e)
             return Response({"status":400, "message":"Email send unsuccesfully"},status=status.HTTP_400_BAD_REQUEST)
+
+
+class aws_sns(APIView):
+    def get(self, request):
+        from django.core.mail import send_mail
+        from django.conf import settings
+        from django.template.loader import render_to_string,get_template
+        import time
+        try:
+            print("enter")
+            # Set up your AWS credentials and region
+            aws_access_key_id = 'AKIAXBPY5MDZIBHNXH6L'
+            aws_secret_access_key = 'knoTzCMoDL8c9xzTGmqiauwpVxTtWerWOuZC4vCn'
+            region_name = 'ap-south-1'  # Replace with your desired AWS region
+
+            # Create an SNS client
+            sns_client = boto3.client('sns', region_name=region_name, aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
+
+            # Subscribe to the SNS topic for bounce and complaint notifications
+            topic_arn = 'arn:aws:sns:ap-south-1:484242710770:email_campaign'
+            subscription = sns_client.subscribe(
+                TopicArn=topic_arn,
+                Protocol='email',  # You can choose other protocols if needed
+                Endpoint='hoqueaktarul07@gmail.com'  # Your email or endpoint to receive notifications
+            )
+
+            print("Subscription ARN:", subscription)
+
+            # Handle notifications
+            print(sns_client)
+            # while True:
+                # response = sns_client.receive_message(TopicArn=topic_arn)
+                # for message in response.get('Messages', []):
+                #     notification = json.loads(message['Body'])
+                #     # Process the notification, which contains bounce or complaint information
+                #     print("Received notification:", notification)
+
+                #     # Delete the processed message
+                #     sns_client.delete_message(
+                #         QueueUrl=topic_arn,
+                #         ReceiptHandle=message['ReceiptHandle']
+                    # )
+            
+
+        except Exception as e:
+            print(e)
+            return Response({"status":400, "message":"Email send unsuccesfully"},status=status.HTTP_400_BAD_REQUEST)
+
 
